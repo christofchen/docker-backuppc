@@ -1,6 +1,6 @@
-FROM alpine:3.9.2
+FROM balenalib/odroid-xu4-alpine-node
 
-LABEL maintainer="Adrien Ferrand <ferrand.ad@gmail.com>"
+LABEL maintainer="Christof Chen <christof@chen.de>"
 
 ENV BACKUPPC_VERSION 4.3.0
 ENV BACKUPPC_XS_VERSION 0.58
