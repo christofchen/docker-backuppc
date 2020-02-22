@@ -2,13 +2,13 @@ FROM balenalib/odroid-xu4-alpine-node
 
 LABEL maintainer="Christof Chen <christof@chen.de>"
 
-ENV BACKUPPC_VERSION 4.3.0
-ENV BACKUPPC_XS_VERSION 0.58
-ENV RSYNC_BPC_VERSION 3.1.2.0
+ENV BACKUPPC_VERSION 4.3.1
+ENV BACKUPPC_XS_VERSION 0.59
+ENV RSYNC_BPC_VERSION 3.1.2.1
 ENV PAR2_VERSION v0.8.0
 
 # Install backuppc runtime dependencies
-RUN apk --no-cache --update add python3 rsync bash perl perl-archive-zip perl-xml-rss perl-cgi perl-file-listing expat samba-client iputils openssh openssl rrdtool ttf-dejavu msmtp lighttpd lighttpd-mod_auth gzip apache2-utils tzdata libstdc++ libgomp shadow ca-certificates \
+RUN apk --no-cache --update add python3 rsync bash perl perl-archive-zip perl-xml-rss perl-cgi perl-file-listing expat samba-client iputils openssh openssl rrdtool ttf-dejavu msmtp lighttpd lighttpd-mod_auth gzip apache2-utils tzdata libstdc++ libgomp shadow ca-certificates at samba-common-tools\
 # Install backuppc build dependencies
  && apk --no-cache --update --virtual build-dependencies add gcc g++ libgcc linux-headers autoconf automake make git patch perl-dev python3-dev expat-dev acl-dev attr-dev popt-dev curl wget \
 # Install supervisor
@@ -44,6 +44,7 @@ COPY files/lighttpd.conf /etc/lighttpd/lighttpd.conf
 COPY files/entrypoint.sh /entrypoint.sh
 COPY files/run.sh /run.sh
 COPY files/circus.ini /etc/circus.ini
+COPY files/winexe-static-alpine /usr/local/bin/winexe
 
 EXPOSE 8080
 
