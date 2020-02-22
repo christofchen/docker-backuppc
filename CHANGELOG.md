@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+## [4.3.2] - 18/02/2020
+### Changed
+* Update to BackupPC 4.3.2
+* Update base image to Alpine 3.11.3
+* Update Par2Cmdline to 0.8.1
+
+## [4.3.1-1] - 07/12/2019
+### Changed
+* Update base image to Alpine 3.10.3
+
+## [4.3.1] - 17/07/2019
+### Added
+* Proper Docker signal handling (eg. SIGINT) by making Circus be the PID 1
+* Support TLS in msmtp (thanks to @belaytzev in adferrand/docker-backuppc#22)
+
+### Changed
+* Update to BackupPC 4.3.1
+* Update to rsync-bpc 3.1.2.1
+* Update perl lib BackupPC::XS to 0.59
+
 ## [4.3.0-6] - 18/03/2019
 ### Added
 * Install DejaVu font for a better look and readability of generated RRD graphs in BackupPC UI (#21 from @jkroepke)
