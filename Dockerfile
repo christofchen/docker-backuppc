@@ -9,7 +9,7 @@ ENV PAR2_VERSION v0.8.1
 
 # Install backuppc runtime dependencies
 RUN apk --no-cache --update add \
-        python3 shadow at samba-common-tools\
+        shadow at samba-common-tools\
         rsync tar bash shadow ca-certificates \
         supervisor \
         perl perl-archive-zip perl-xml-rss perl-cgi perl-file-listing perl-json-xs \
