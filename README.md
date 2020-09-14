@@ -1,5 +1,5 @@
 # &nbsp;![](https://raw.githubusercontent.com/adferrand/docker-backuppc/master/images/logo_200px.png) adferrand/backuppc
-![](https://img.shields.io/badge/tags-4%20latest-lightgrey.svg) [![](https://images.microbadger.com/badges/version/adferrand/backuppc:4.3.2.svg) ![](https://images.microbadger.com/badges/image/adferrand/backuppc:4.3.2.svg)](https://microbadger.com/images/adferrand/backuppc:4.3.2) [![CircleCI](https://circleci.com/gh/adferrand/docker-backuppc/tree/master.svg?style=shield)](https://circleci.com/gh/adferrand/docker-backuppc/tree/master)
+![](https://img.shields.io/badge/tags-4%20latest-lightgrey.svg) [![](https://img.shields.io/github/v/release/adferrand/docker-backuppc) ![](https://images.microbadger.com/badges/image/adferrand/backuppc.svg)](https://microbadger.com/images/adferrand/backuppc) [![Azure Pipelines](https://img.shields.io/azure-devops/build/adferrand/fd132650-8300-439c-b04a-d6899e77aa22/27)](https://dev.azure.com/adferrand/backuppc/_build?definitionId=27)
 
 * [Container functionalities](#container-functionalities)
 * [About BackupPC](#about-backuppc)
@@ -7,7 +7,9 @@
 * [Data persistency](#data-persistency)
 	* [POSIX rights](#posix-rights)
 * [UI authentication/authorization](#ui-authenticationauthorization)
-	* [Advanced UI authentication/authorization](#advanced-ui-authenticationauthorization)
+    * [File authentication](#file-authentication)
+	* [Active Directory/LDAP](#active-directory--ldap)
+    * [Advanced configuration](#advanced-configuration)
 * [UI SSL encryption](#ui-ssl-encryption)
 	* [Self-signed certificate](#self-signed-certificate)
 	* [Advanced SSL use](#advanced-ssl-use)
@@ -36,7 +38,7 @@ This docker is designed to provide a ready-to-go and maintainable BackupPC insta
 ![BackupPC Logo](https://backuppc.github.io/backuppc/images/logos/logo320.png)
 BackupPC is a free self-hosted backup software able to backup remote hosts through various ways like rsync, smb or tar. It supports full and incremental backups, and reconstruct automatically a usable verbatim from any backup version. Started with version 4, BackupPC uses a new way to store backups by a reverse delta approach and no hardlinks.
 
-See [BackupPC documentation](http://backuppc.sourceforge.net/BackupPC-4.1.1.html) for further details and how to use it.
+See [BackupPC documentation](https://backuppc.github.io/backuppc/BackupPC.html) for further details and how to use it.
 
 ## Basic usage
 
@@ -51,7 +53,7 @@ docker run \
 ```
 
 Latest BackupPC 4.x docker image will be downloaded if needed, and started. 
-After starting, browse http://YOUR_SERVER_IP:8080 to access the BackupPC web Admin UI. 
+After starting, browse http://YOUR_SERVER_IP:8080 to access the BackupPC Admin Web UI. 
 
 The default credentials are:
 - **username:** backuppc
@@ -109,22 +111,51 @@ docker run \
 
 ## UI authentication/authorization
 
-By default, a single user with admin rights is created during the first start of the container. Its username is *backuppc* and its password is *password*. The credentials are stored in the file `/etc/backuppc/htpasswd` to allow the embedded lighttpd server to handle Basic Authentication, and the Backuppc config variable `$Conf{CgiAdminUsers}` is setted to this username to instruct BackupPC to give it admin rights. 
+BackupPC can use different methods to authenticate and authorize users to access the BackupPC Admin Web UI. The method
+used is controlled by the value of the `AUTHENTICATION_METHOD (default file)` environment variable.
+
+At this time there are two methods:
+* Credentials are defined in a httpasswd-like file. This is the default one.
+* Credentials are stored in a LDAP database or an Active Directory instance, and `docker-backuppc` connects to it to
+  validate the accesses.
+
+In all cases the authentication process is done through the HTTP Basic Auth. If BackupPC is served through the unsecured HTTP protocol, credentials are exposed in plain text. See [UI SSL encryption](#ui-ssl-encryption) to secure the authentication data.
+
+### File authentication
+
+This method is enabled with `AUTHENTICATION_METHOD=file`.
+
+Out of the box with this authentication method enabled, a single user with admin rights is created during the first start of
+the container. Its username is *backuppc* and its password is *password*. The credentials are stored in the file `/etc/backuppc/htpasswd` to allow the embedded lighttpd server to handle Basic Authentication, and the Backuppc config variable `$Conf{CgiAdminUsers}` is setted to this username to instruct BackupPC to give it admin rights. 
 
 You can modify the admin user credentials by setting the environment variables `BACKUPPC_WEB_USER (default backuppc)` and `BACKUPPC_WEB_PASSWD (default password)` when creating the container.
 
 The admin user credentials can be modified on an existing container by modifying the relevant environment variables, then re-creating the container. However please note that if you modify the username, you will need to manually remove the old username from the file `/etc/backuppc/htpasswd` in the container after its re-creation.
 
-### Advanced UI authentication/authorization
+### Active Directory / LDAP
+
+This method is enabled with `AUTHENTICATION_METHOD=ldap`.
+
+You can also authorize against an Active Directory / LDAP. The following Parameter are required to use this authorize method:
+
+| ENV Parameter | Description | Example |
+| --- | --- | --- |
+| `LDAP_HOSTNAME` | LDAP Hostname / IP with Port | ad.example.com:389 |
+| `LDAP_BASE_DN` | LDAP Base DN | DC=example,DC=com | 
+| `LDAP_FILTER` | LDAP Filter | (\&(objectClass=user)(sAMAccountName=$))' |
+| `LDAP_BIND_DN` | LDAP Bind DN | cn=backuppc,cn=users,DC==example,DC=com |
+| `LDAP_BIND_PW` | LDAP Password | SuperSecretPassword |
+| `LDAP_BACKUPPC_ADMIN` | LDAP user with with backuppc admin rights | backuppcadmin |
+
+### Advanced configuration
 
 One may need more advanced authentication/authorization on Backuppc Web UI, for instance several *normal* users allowing operations on backups, and an *admin* user to parameterize BackupPC.
 
 In theses cases, authentication and admin granting must be configured manually.
-* Authentication is configured by providing credentials in the file `/etc/backuppc/htpasswd` of the container. You should use Apache `htpasswd` utility to fill it.
-* All authenticated users are considered as *normal* users if not telling otherwise. Add a username in the `$Conf{CgiAdminUsers}` variable of `/etc/backuppc/config.pl` file to grant this user admin rights.
-* Then default admin user creation is not needed : unset environment variables `BACKUPPC_WEB_USER` and `BACKUPPC_WEB_PASSWD` to avoid adding an additional user in the `htpasswd` file, and reconfigure admin rights in `config.pl`.
+* If `file` authentication method is used, you should use Apache `htpasswd` utility to fill content of the file `/etc/backuppc/htpasswd`. You can also disable the default admin user creation by unsetting environment variables `BACKUPPC_WEB_USER` and `BACKUPPC_WEB_PASSWD`, and reconfigure admin rights in `config.pl`.
+* All authenticated users are considered as *normal* users if not telling otherwise. Add a username in the `$Conf{CgiAdminUsers}` variable of `/etc/backuppc/config.pl` file to grant this user admin rights, or use `LDAP_BACKUPPC_ADMIN` with the `ldap` authentication method.
 
-For instance, with two *normal* users `user1` and `user2` + one *admin* user `admin`, you can do the following steps on the host. It is assumed that `/etc/backuppc` is mounted on `/var/docker-data/backuppc/etc` on the host and Apache `htpasswd` utility is installed on it.
+For instance, with two *normal* users `user1` and `user2` + one *admin* user `admin`, using the `file` authentication method, you can do the following steps on the host. It is assumed that `/etc/backuppc` is mounted on `/var/docker-data/backuppc/etc` on the host and Apache `htpasswd` utility is installed on it.
 
 ```bash
 htpasswd -b -c /var/docker-data/backuppc/etc/htpasswd admin admin_password
@@ -141,8 +172,6 @@ docker run \
     --volume /var/docker-data/backuppc/data:/data/backuppc \
     adferrand/backuppc  
 ```
-
-Please note that Basic Authentication is still done unencrypted on HTTP port. See [UI SSL encryption](#ui-ssl-encryption) to secure the authentication.
 
 ## UI SSL encryption
 
@@ -248,6 +277,13 @@ docker run \
     --publish 80:8080 \
     adferrand/backuppc
 ```
+
+### Metrics
+
+Metrics are available on a dedicated endpoint. For example, if the URL to access the BackupPC Admin Web UI is `http://YOUR_SERVER_IP:8080`, then use:
+* `http://YOUR_SERVER_IP:8080/BackupPC_Admin?action=metrics&format=json` to get the metrics in JSON format
+* `http://YOUR_SERVER_IP:8080/BackupPC_Admin?action=metrics&format=rss` to get the metrics in RSS format
+* `http://YOUR_SERVER_IP:8080/BackupPC_Admin?action=metrics&format=prometheus` to get the metrics in Prometheus format
 
 ### Timezone
 
