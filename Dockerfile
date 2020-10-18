@@ -29,6 +29,8 @@ RUN apk --no-cache --update add \
 # Configure MSMTP for mail delivery (initially sendmail is a sym link to busybox)
  && rm -f /usr/sbin/sendmail \
  && ln -s /usr/bin/msmtp /usr/sbin/sendmail \
+ && rm -f /etc/msmtprc \
+ && ln -s /home/backuppc/.msmtprc /etc/msmtprc \
 # Disable strict host key checking
  && sed -i -e 's/^# Host \*/Host */g' /etc/ssh/ssh_config \
  && sed -i -e 's/^#   StrictHostKeyChecking ask/    StrictHostKeyChecking no/g' /etc/ssh/ssh_config \
