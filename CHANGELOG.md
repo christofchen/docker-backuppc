@@ -2,20 +2,29 @@
 
 ## master - CURRENT
 
+## 4.4.0-4 - 13/11/2020
+### Added
+* The system configuration file `/etc/msmtprc` for `msmtprc` is not overwritten
+  if it already exists at container initialization. Update documentation on that matter.
+
+## 4.4.0-3 - 06/11/2020
+### Modified
+* Update base image to Alpine 3.12.1
+
 ## 4.4.0-2 - 13/08/2020
-# Modified
+### Modified
 * Fixed an error about docker instance failing to restart after first run (thanks @tadr0 and @csibbitt with #40)
 
 ## 4.4.0-1 - 24/07/2020
-# Modified
+### Modified
 * Conditionnally create the symlink /bin/bzip2 to prevent regressions
 
 ## 4.4.0 - 21/06/2020
-# Added
+### Added
 * Add JSON::RS perl dependency to allow BackupPC metrics in JSON format
 * Update documentation about metrics
 
-# Changed
+### Changed
 * Update BackupPC to 4.4.0
 * Update perl lib BackupPC::XS to 0.62
 * Update rsync-bpc to 3.1.2.2
