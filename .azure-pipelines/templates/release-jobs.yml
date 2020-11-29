@@ -33,7 +33,7 @@ jobs:
           VERSION=`cat VERSION`
           echo "Version is: $version"
           echo "##vso[task.setvariable variable=ReleaseVersion;]${VERSION}"
-        displayVersion: Get version
+        displayName: Get version
       - script: |
           python utils/extract_changelog.py $(ReleaseVersion) > release_$(ReleaseVersion).md
       - task: GithubRelease@0
@@ -43,7 +43,7 @@ jobs:
           releaseNotesFile: $(Build.SourcesDirectory)/release_$(ReleaseVersion).md
           addChangeLog: false
         displayName: Create GitHub Release
-  - job: trigger-dockerhub
+  - job: trigger_dockerhub
     pool:
       vmImage: ubuntu-18.04
     steps:
